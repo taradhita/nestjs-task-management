@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { TaskStatus } from './task-status.enum';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 
@@ -18,12 +18,17 @@ export class TasksService {
     const query = this.tasksRepository.createQueryBuilder('task');
 
     if (status) {
-      query.andWhere('task.status = :status'), { status };
+      query.andWhere(`task.status = :status`, { status });
     }
     if (search) {
       query.andWhere(
-        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
-        { search: `%${search}%` },
+        new Brackets((qb) => {
+          qb.where(`LOWER(task.title) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          }).orWhere(`LOWER(task.description) LIKE LOWER(:search)`, {
+            search: `%${search}%`,
+          });
+        }),
       );
     }
 
