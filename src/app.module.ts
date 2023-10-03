@@ -1,14 +1,24 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TasksModule } from './tasks/tasks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import databaseConfig from './config/database.config';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { createTypeOrmOptions } from './config/database.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    TypeOrmModule.forRoot(databaseConfig()),
+    ConfigModule.forRoot({
+      envFilePath: [`.env`],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: createTypeOrmOptions,
+    }),
     TasksModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
