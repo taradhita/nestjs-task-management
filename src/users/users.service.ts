@@ -35,4 +35,17 @@ export class UsersService {
 
     return user;
   }
+
+  async validateUserPassword(
+    username: string,
+    password: string,
+  ): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { username } });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return user.username;
+    } else {
+      return null;
+    }
+  }
 }
