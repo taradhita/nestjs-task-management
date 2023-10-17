@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { User } from 'src/users/user.entity';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskStatus } from './task-status.enum';
 
 @Injectable()
 export class TaskRepository extends Repository<Task> {
@@ -45,5 +47,20 @@ export class TaskRepository extends Repository<Task> {
       );
       throw new InternalServerErrorException();
     }
+  }
+
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
+    const { title, description } = createTaskDto;
+
+    const task = this.create({
+      title,
+      description,
+      status: TaskStatus.OPEN,
+      user: user,
+    });
+
+    await this.save(task);
+
+    return task;
   }
 }
