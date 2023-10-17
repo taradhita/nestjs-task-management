@@ -6,36 +6,14 @@ import { Brackets, Repository } from 'typeorm';
 import { TaskStatus } from './task-status.enum';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { User } from 'src/users/user.entity';
+import { TaskRepository } from './task.repository';
 
 @Injectable()
 export class TasksService {
-  constructor(
-    @InjectRepository(Task)
-    private tasksRepository: Repository<Task>,
-  ) {}
+  constructor(private tasksRepository: TaskRepository) {}
 
   async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
-    const { status, search } = filterDto;
-    const query = this.tasksRepository.createQueryBuilder('task');
-    query.where({ user });
-
-    if (status) {
-      query.andWhere(`task.status = :status`, { status });
-    }
-    if (search) {
-      query.andWhere(
-        new Brackets((qb) => {
-          qb.where(`(LOWER(task.title) LIKE LOWER(:search))`, {
-            search: `%${search}%`,
-          }).orWhere(`(LOWER(task.description) LIKE LOWER(:search))`, {
-            search: `%${search}%`,
-          });
-        }),
-      );
-    }
-
-    const tasks = await query.getMany();
-    return tasks;
+    return this.tasksRepository.getTasks(filterDto, user);
   }
 
   async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
